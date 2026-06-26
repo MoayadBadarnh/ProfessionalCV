@@ -4,13 +4,18 @@ import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
+import { connectDB, isDbConnected } from "./db";
+import { User, CV } from "./models";
 
 dotenv.config();
 
 async function startServer() {
   const app = express();
   
-  const PORT = process.env.PORT || 3000;
+  const PORT = parseInt(process.env.PORT || "3000", 10);
+
+  // Connect to MongoDB Atlas
+  await connectDB();
 
   // Maximize JSON payload sizes for profile picture Base64 uploads
   app.use(express.json({ limit: "50mb" }));
@@ -36,8 +41,22 @@ async function startServer() {
   }
 
   // API: Get a saved CV
-  app.get("/api/cv/:username", (req, res) => {
+  app.get("/api/cv/:username", async (req, res) => {
     const username = req.params.username.toLowerCase();
+    
+    // 1. Try loading from MongoDB if active
+    if (isDbConnected()) {
+      try {
+        const cv = await CV.findOne({ username }).lean();
+        if (cv) {
+          return res.json(cv);
+        }
+      } catch (err) {
+        console.error("Failed to load CV from MongoDB:", err);
+      }
+    }
+
+    // 2. Fallback to local files
     const cvs = loadCVs();
     const cv = cvs[username];
     if (!cv) {
@@ -47,7 +66,7 @@ async function startServer() {
   });
 
   // API: Save or Update a CV
-  app.post("/api/cv", (req, res) => {
+  app.post("/api/cv", async (req, res) => {
     const { username, cvData } = req.body;
     if (!username) {
       return res.status(400).json({ error: "Username is required" });
@@ -66,8 +85,60 @@ async function startServer() {
       analytics: existingCv.analytics || []
     };
 
+    // Save to local file storage (original behavior)
     cvs[cleanUsername] = mergedCvData;
     fs.writeFileSync(CVS_FILE, JSON.stringify(cvs, null, 2), "utf-8");
+
+    // Save to MongoDB Atlas (if active)
+    if (isDbConnected()) {
+      try {
+        // Find or create user
+        let userObj = await User.findOne({ username: cleanUsername });
+        if (!userObj) {
+          userObj = await User.create({ username: cleanUsername });
+        }
+
+        // Upsert CV details
+        const cvToSave = {
+          user: userObj._id,
+          username: cleanUsername,
+          fullName: mergedCvData.fullName || "",
+          title: mergedCvData.title || "",
+          linkedinUrl: mergedCvData.linkedinUrl || "",
+          twitterUrl: mergedCvData.twitterUrl || "",
+          githubUrl: mergedCvData.githubUrl || "",
+          websiteUrl: mergedCvData.websiteUrl || "",
+          skills: mergedCvData.skills || "",
+          aboutSectionId: mergedCvData.aboutSectionId || "about",
+          workSectionId: mergedCvData.workSectionId || "myWork",
+          aboutMe: mergedCvData.aboutMe || "",
+          experience: mergedCvData.experience || "", // Added experience support
+          projects: mergedCvData.projects || [],
+          profilePhoto: mergedCvData.profilePhoto || "",
+          backgroundStyle: mergedCvData.backgroundStyle || "olive",
+          customBgUrl: mergedCvData.customBgUrl || "",
+          audioBioUrl: mergedCvData.audioBioUrl || "",
+          audioBioType: mergedCvData.audioBioType || "none",
+          specialization: mergedCvData.specialization || "general",
+          githubUsername: mergedCvData.githubUsername || "",
+          behanceUrl: mergedCvData.behanceUrl || "",
+          seoTitle: mergedCvData.seoTitle || "",
+          seoDescription: mergedCvData.seoDescription || "",
+          seoKeywords: mergedCvData.seoKeywords || "",
+          language: mergedCvData.language || "en",
+          analytics: mergedCvData.analytics || []
+        };
+
+        await CV.findOneAndUpdate(
+          { username: cleanUsername },
+          cvToSave,
+          { upsert: true, new: true }
+        );
+        console.log(`Saved CV for ${cleanUsername} to MongoDB.`);
+      } catch (err) {
+        console.error("Failed to save CV to MongoDB:", err);
+      }
+    }
 
     // Dynamic self-referential links
     const baseUrl = process.env.APP_URL || `${req.protocol}://${req.get("host")}`;
@@ -75,8 +146,22 @@ async function startServer() {
   });
 
   // API: Get analytics for a CV
-  app.get("/api/cv-analytics/:username", (req, res) => {
+  app.get("/api/cv-analytics/:username", async (req, res) => {
     const username = req.params.username.toLowerCase();
+    
+    // 1. Try loading from MongoDB if active
+    if (isDbConnected()) {
+      try {
+        const cv = await CV.findOne({ username }).lean();
+        if (cv) {
+          return res.json({ analytics: cv.analytics || [] });
+        }
+      } catch (err) {
+        console.error("Failed to load CV analytics from MongoDB:", err);
+      }
+    }
+
+    // 2. Fallback to local files
     const cvs = loadCVs();
     const cv = cvs[username];
     if (!cv) {
@@ -392,10 +477,28 @@ ${JSON.stringify({
   });
 
   // Dynamic Route: Server-side rendering of the beautiful Hosted CV page
-  app.get("/cv/:username", (req, res) => {
+  app.get("/cv/:username", async (req, res) => {
     const username = req.params.username.toLowerCase();
-    const cvs = loadCVs();
-    const cv = cvs[username];
+    
+    // 1. Try loading from MongoDB if active
+    let cv = null;
+    let loadedFromDb = false;
+    if (isDbConnected()) {
+      try {
+        cv = await CV.findOne({ username }).lean();
+        if (cv) {
+          loadedFromDb = true;
+        }
+      } catch (err) {
+        console.error("Failed to load CV from MongoDB in HTML render:", err);
+      }
+    }
+
+    // 2. Fallback to local files
+    if (!cv) {
+      const cvs = loadCVs();
+      cv = cvs[username];
+    }
 
     // Track visit asynchronously
     if (cv) {
@@ -409,22 +512,43 @@ ${JSON.stringify({
           const response = await fetch(`http://ip-api.com/json/${ip}`);
           const geo = await response.json();
           
+          const orgName = geo.org || geo.isp || "Unknown Company";
+          const visit = {
+            timestamp: new Date().toISOString(),
+            ip: ip,
+            country: geo.country || "Unknown Country",
+            city: geo.city || "Unknown City",
+            org: orgName,
+            isRecruiter: /recruit|talent|hr|staff|job|career|headhunter|agency|corp|inc|llc|google|amazon|microsoft|apple|facebook|meta/i.test(orgName)
+          };
+          
+          // Track to MongoDB if loaded from DB or DB is connected
+          if (isDbConnected() && loadedFromDb) {
+            try {
+              await CV.updateOne(
+                { username },
+                { 
+                  $push: { 
+                    analytics: { 
+                      $each: [visit], 
+                      $position: 0, 
+                      $slice: 100 
+                    } 
+                  } 
+                }
+              );
+              console.log(`Tracked visit to MongoDB for ${username}`);
+            } catch (err) {
+              console.error("Failed to save visit to MongoDB:", err);
+            }
+          }
+
+          // Track to local file storage (preserving existing behavior)
           const freshCvs = loadCVs();
           if (freshCvs[username]) {
             if (!freshCvs[username].analytics) {
               freshCvs[username].analytics = [];
             }
-            
-            const orgName = geo.org || geo.isp || "Unknown Company";
-            const visit = {
-              timestamp: new Date().toISOString(),
-              ip: ip,
-              country: geo.country || "Unknown Country",
-              city: geo.city || "Unknown City",
-              org: orgName,
-              isRecruiter: /recruit|talent|hr|staff|job|career|headhunter|agency|corp|inc|llc|google|amazon|microsoft|apple|facebook|meta/i.test(orgName)
-            };
-            
             freshCvs[username].analytics.unshift(visit);
             freshCvs[username].analytics = freshCvs[username].analytics.slice(0, 100);
             fs.writeFileSync(CVS_FILE, JSON.stringify(freshCvs, null, 2), "utf-8");
