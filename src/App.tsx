@@ -36,31 +36,28 @@ import { CanvasBackground } from "./components/CanvasBackground";
 export default function App() {
   // Main CV State
   const [cvData, setCvData] = useState<CVData>({
-    fullName: "Moayad Al-Badarneh",
-    title: "Full-Stack Developer",
-    linkedinUrl: "https://linkedin.com/in/moayad-badarneh",
-    twitterUrl: "https://twitter.com/moayad-dev",
-    githubUrl: "https://github.com/moayad-dev",
-    websiteUrl: "https://moayad.dev",
-    skills: "React, Node.js, TypeScript, Next.js, AI Integration, Tailwind CSS, PostgreSQL, Docker",
+    fullName: "",
+    title: "",
+    linkedinUrl: "",
+    twitterUrl: "",
+    githubUrl: "",
+    websiteUrl: "",
+    skills: "",
     aboutSectionId: "about",
     workSectionId: "myWork",
-    aboutMe: "I am a passionate software engineer specializing in modern full-stack architectures and high-impact web apps. Expert in React, Node.js, and integrating Generative AI capabilities. Dedicated to crafting fluid user interfaces combined with bulletproof backends.",
-    projects: [
-      { id: "1", name: "AI SmartCV Platform", description: "A high-fidelity resume hosting system with real-time editing, serverless hosting, and native Smart AI polisher integrations." },
-      { id: "2", name: "Dynamic Audio Synthesis engine", description: "Speech synthesis browser module with custom waveform rendering, recording capabilities, and responsive progress tracking." }
-    ],
+    aboutMe: "",
+    projects: [],
     profilePhoto: "",
     backgroundStyle: "olive",
     customBgUrl: "",
     audioBioUrl: "",
-    audioBioType: "tts",
-    specialization: "developer",
-    githubUsername: "moayad-dev",
+    audioBioType: "none",
+    specialization: "general",
+    githubUsername: "",
     behanceUrl: "",
-    seoTitle: "Moayad Al-Badarneh — Full-Stack Developer Portfolio",
-    seoDescription: "Hi, I am Moayad Al-Badarneh. Welcome to my interactive, voice-guided smart CV built with Smart AI.",
-    seoKeywords: "Moayad Al-Badarneh, Software Developer, Full-Stack, Portfolio, React, Node.js"
+    seoTitle: "",
+    seoDescription: "",
+    seoKeywords: ""
   });
 
   // Editor Panel tab selection
@@ -105,44 +102,11 @@ export default function App() {
   const ttsIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const [dashboardLang, setDashboardLang] = useState<"en" | "ar">("en");
-  const [isTranslatingCV, setIsTranslatingCV] = useState(false);
-
-  const translateEntireCV = async (target: "ar" | "en") => {
-    setIsTranslatingCV(true);
-    try {
-      const response = await fetch("/api/translate-cv", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cv: cvData, targetLang: target })
-      });
-      if (!response.ok) {
-        throw new Error("Failed to translate");
-      }
-      const data = await response.json();
-      setCvData(prev => ({
-        ...prev,
-        fullName: data.fullName || prev.fullName,
-        title: data.title || prev.title,
-        aboutMe: data.aboutMe || prev.aboutMe,
-        skills: data.skills || prev.skills,
-        projects: data.projects || prev.projects,
-        seoTitle: data.seoTitle || prev.seoTitle,
-        seoDescription: data.seoDescription || prev.seoDescription,
-        seoKeywords: data.seoKeywords || prev.seoKeywords,
-        language: target
-      }));
-    } catch (err: any) {
-      console.error(err);
-      alert("حدث خطأ أثناء الترجمة: " + err.message);
-    } finally {
-      setIsTranslatingCV(false);
-    }
-  };
 
   // Generate a random username on mount
   useEffect(() => {
     const randomNum = Math.floor(1000 + Math.random() * 9000);
-    setUsername(`developer-${randomNum}`);
+    setUsername(`my-cv-${randomNum}`);
   }, []);
 
   // Poll analytics periodically if CV is published
@@ -575,6 +539,7 @@ export default function App() {
       const data = await res.json();
       if (data.url) {
         setGeneratedUrl(data.url);
+        window.location.assign(`/cv/${username.trim().toLowerCase()}`);
       } else if (data.error) {
         setDeployError(data.error);
       }
@@ -676,24 +641,21 @@ export default function App() {
 
   const dt = {
     title: dashboardLang === "ar" ? "صانع السيرة الذاتية" : "SmartCV Builder",
-    subtitle: dashboardLang === "ar" ? "منصة بناء واستضافة السير الذاتية تفاعلياً بالذكاء الاصطناعي" : "AI-Powered Interactive Resume Builder & Live Hosting",
-    translateBtn: dashboardLang === "ar" ? "ترجمة السيرة كاملة للعربية ✨" : "Translate Entire CV to Arabic ✨",
-    translateToEnBtn: dashboardLang === "ar" ? "Translate Entire CV to English 🌐" : "ترجمة السيرة كاملة للإنجليزية 🌐",
-    translating: dashboardLang === "ar" ? "جاري الترجمة بالذكاء الاصطناعي..." : "Translating with AI...",
+    subtitle: dashboardLang === "ar" ? "أنشئ سيرتك الذاتية بسهولة وانشرها أونلاين" : "Build your resume easily and publish it online",
     tabIdentity: dashboardLang === "ar" ? "الهوية والصورة" : "Identity",
-    tabSpecialization: dashboardLang === "ar" ? "التخصص والروابط" : "Specialization",
+    tabSpecialization: dashboardLang === "ar" ? "التركيز والروابط" : "Focus & Links",
     tabAbout: dashboardLang === "ar" ? "النبذة والمهارات" : "About & Skills",
-    tabProjects: dashboardLang === "ar" ? "المشاريع والأعمال" : "My Projects",
-    tabSeo: dashboardLang === "ar" ? "السيو SEO" : "SEO & Meta",
+    tabProjects: dashboardLang === "ar" ? "الخبرات والمشاريع" : "Experience",
+    tabSeo: dashboardLang === "ar" ? "البحث في جوجل" : "Search Settings",
     tabTheme: dashboardLang === "ar" ? "القوالب والخلفيات" : "Themes",
-    tabDeploy: dashboardLang === "ar" ? "نشر واستضافة" : "Publish",
+    tabDeploy: dashboardLang === "ar" ? "نشر السيرة" : "Publish",
     fullName: dashboardLang === "ar" ? "الاسم الكامل" : "Full Name",
-    jobTitle: dashboardLang === "ar" ? "المسمى الوظيفي" : "Professional Title",
+    jobTitle: dashboardLang === "ar" ? "المسمى الوظيفي" : "Job Title",
     skills: dashboardLang === "ar" ? "المهارات (مفصولة بفواصل)" : "Skills (comma-separated)",
-    aboutText: dashboardLang === "ar" ? "نبذة مهنية عنك" : "Professional Biography",
+    aboutText: dashboardLang === "ar" ? "نبذة عنك" : "About You",
     saveAndPublish: dashboardLang === "ar" ? "حفظ ونشر السيرة الذاتية" : "Save & Publish SmartCV",
     pastedResume: dashboardLang === "ar" ? "استيراد من LinkedIn أو نص خام بالذكاء الاصطناعي" : "AI Import from LinkedIn or Raw Text",
-    pasteHelper: dashboardLang === "ar" ? "الصق نص ملفك الشخصي هنا وسنقوم بصياغة سيرتك الذاتية تلقائياً!" : "Paste your LinkedIn raw profile here. We will parse it instantly into your CV!",
+    pasteHelper: dashboardLang === "ar" ? "الصق نص ملفك الشخصي هنا وسنقوم بصياغة سيرتك الذاتية تلقائياً!" : "Paste your profile text here and we will organize it into your CV!",
     parseBtn: dashboardLang === "ar" ? "استخراج البيانات بذكاء" : "AI Parse Resume",
     successMsg: dashboardLang === "ar" ? "تم الحفظ والنشر بنجاح!" : "Saved and published successfully!",
     audioBio: dashboardLang === "ar" ? "السيرة الذاتية الصوتية" : "Voice Bio",
@@ -731,26 +693,26 @@ export default function App() {
     specGeneral: dashboardLang === "ar" ? "عام" : "General",
     specGeneralDesc: dashboardLang === "ar" ? "سيرة ذاتية نصية" : "Standard text resume",
     githubUsernameLabel: dashboardLang === "ar" ? "اسم المستخدم في جيت هاب" : "GitHub Username",
-    githubUsernameDesc: dashboardLang === "ar" ? "أدخل اسم المستخدم العام في GitHub لجلب وعرض أفضل 6 مستودعات برمجية لك مع النجوم مباشرة على سيرتك الذاتية!" : "Enter your public GitHub username to automatically fetch and display your top 6 repositories with live stargazers on your live CV page!",
-    behanceUrlLabel: dashboardLang === "ar" ? "رابط معرض أعمال بيهانس (Behance)" : "Behance Portfolio URL",
-    behanceUrlDesc: dashboardLang === "ar" ? "أدخل رابط حسابك في Behance لعرض معرض صور مذهل لأعمالك وتصميماتك بأسلوب Bento الإبداعي!" : "Provide your Behance profile URL to display a stunning Bento-style design showcase portfolio with deep visuals!",
-    seoTitleLabel: dashboardLang === "ar" ? "تحسين محركات البحث (SEO)" : "Search Engine Optimization (SEO)",
-    seoDesc: dashboardLang === "ar" ? "خصص البيانات الوصفية (Meta) التي تقرأها محركات البحث مثل Google عند أرشفة سيرتك الذاتية الذكية المستضافة!" : "Customize the meta details that search engines like Google will read when indexing your smart hosted CV!",
+    githubUsernameDesc: dashboardLang === "ar" ? "أدخل اسم المستخدم في GitHub لعرض مشاريعك على صفحة سيرتك الذاتية." : "Enter your GitHub username to show your projects on your live CV page.",
+    behanceUrlLabel: dashboardLang === "ar" ? "رابط معرض أعمال Behance" : "Behance Portfolio URL",
+    behanceUrlDesc: dashboardLang === "ar" ? "أدخل رابط حسابك في Behance لعرض أعمالك وتصميماتك." : "Enter your Behance profile link to showcase your design work.",
+    seoTitleLabel: dashboardLang === "ar" ? "إعدادات البحث في جوجل" : "Google Search Settings",
+    seoDesc: dashboardLang === "ar" ? "خصص العنوان والوصف الذي يظهر عند البحث عنك في Google." : "Customize the title and description that appear when people search for you on Google.",
     googleSearchTitle: dashboardLang === "ar" ? "عنوان البحث في جوجل" : "Google Search Title",
-    pageDescriptionMeta: dashboardLang === "ar" ? "الوصف الوصفي للصفحة (Meta Description)" : "Page Description Meta",
-    pageDescriptionPlaceholder: dashboardLang === "ar" ? "أدخل وصف الصفحة المهني المقتضب ليظهر أسفل موقعك في نتائج بحث جوجل..." : "Enter meta description for google result snippet...",
+    pageDescriptionMeta: dashboardLang === "ar" ? "وصف الصفحة" : "Page Description",
+    pageDescriptionPlaceholder: dashboardLang === "ar" ? "مثال: أنا مصمم جرافيك أعمل على الهوية البصرية والعلامات التجارية..." : "e.g. I am a graphic designer specializing in branding and visual identity...",
     keywordsLabel: dashboardLang === "ar" ? "الكلمات المفتاحية (مفصولة بفواصل)" : "Keywords (comma-separated)",
-    yourStoryBio: dashboardLang === "ar" ? "نبذتك المهنية وقصتك" : "Your Story Bio",
-    aboutMeStatement: dashboardLang === "ar" ? "عبارة نبذة عني" : "About Me Statement",
-    aboutMePlaceholder: dashboardLang === "ar" ? "اكتب نبذة مهنية توجز خلفيتك الأكاديمية والعملية، مجالات تركيزك، وأسلوبك المهني الفريد..." : "Describe your background, core focus, and professional style...",
-    coreSkills: dashboardLang === "ar" ? "المهارات الأساسية" : "Core Skills",
-    skillsDesc: dashboardLang === "ar" ? "أدخل مهاراتك مفصولة بفواصل (،) لعرضها كشارات أنيقة وتفاعلية على سيرتك الذاتية." : "Enter your skills separated by commas to display them as badges on your CV.",
-    featuredProjects: dashboardLang === "ar" ? "المشاريع المميزة والأعمال" : "Featured Projects",
-    addProjectBtn: dashboardLang === "ar" ? "إضافة مشروع جديد" : "Add Project",
-    projectNamePlaceholder: dashboardLang === "ar" ? "اسم المشروع" : "Project Name",
-    projectDescPlaceholder: dashboardLang === "ar" ? "صف التعقيد التقني، الإنجازات المحققة، والتقنيات المستخدمة في المشروع..." : "Describe technical complexity, achievements, stack...",
-    projectPolisherTitle: dashboardLang === "ar" ? "مطور المشروع بالذكاء الاصطناعي" : "Project Polisher",
-    projectPolisherInputPlaceholder: dashboardLang === "ar" ? "أضف أرقاماً أو كلمات مفتاحية: تسريع 40%، استخدام Rust، لغة GraphQL..." : "Add metrics: 40% speedup, Rust, GraphQL...",
+    yourStoryBio: dashboardLang === "ar" ? "نبذتك المهنية" : "Your Story",
+    aboutMeStatement: dashboardLang === "ar" ? "نبذة عني" : "About Me",
+    aboutMePlaceholder: dashboardLang === "ar" ? "اكتب عن خلفيتك وخبراتك وما الذي يميزك..." : "Tell employers about your background, experience, and what makes you stand out...",
+    coreSkills: dashboardLang === "ar" ? "المهارات" : "Skills",
+    skillsDesc: dashboardLang === "ar" ? "أدخل مهاراتك مفصولة بفواصل (،) لعرضها على سيرتك الذاتية." : "Enter your skills separated by commas to display them on your CV.",
+    featuredProjects: dashboardLang === "ar" ? "الخبرات والمشاريع" : "Experience & Projects",
+    addProjectBtn: dashboardLang === "ar" ? "إضافة خبرة أو مشروع" : "Add Experience or Project",
+    projectNamePlaceholder: dashboardLang === "ar" ? "مثال: متجر إلكتروني، تدريب صيفي، مشروع تخرج" : "e.g. Online store, summer internship, graduation project",
+    projectDescPlaceholder: dashboardLang === "ar" ? "ماذا فعلت؟ ما النتيجة أو الإنجاز؟" : "What did you do? What was the result or achievement?",
+    projectPolisherTitle: dashboardLang === "ar" ? "تحسين الوصف بالذكاء الاصطناعي" : "AI Description Helper",
+    projectPolisherInputPlaceholder: dashboardLang === "ar" ? "أضف تفاصيل: زيادة المبيعات 20%، إدارة فريق من 5..." : "Add details: increased sales 20%, managed a team of 5...",
     aiEnhanceProjectBtn: dashboardLang === "ar" ? "تحسين وصف المشروع بذكاء" : "AI Enhance Project Summary",
     polishingProjectBtn: dashboardLang === "ar" ? "جاري تحسين المشروع..." : "Polishing Project...",
     noProjectsYet: dashboardLang === "ar" ? "لم تقم بإضافة مشاريع بعد." : "No projects added yet.",
@@ -779,12 +741,12 @@ export default function App() {
     uploadAudioBioLabel: dashboardLang === "ar" ? "📁 رفع سيرة صوتية جاهزة" : "📁 Upload Audio Bio",
     chooseAudioFileBtn: dashboardLang === "ar" ? "اختر ملف بصيغة MP3 أو WAV أو WebM" : "Choose MP3/WAV/WebM File",
     voiceBioLoadedMsg: dashboardLang === "ar" ? "تم تحميل سيرتك الصوتية المخصصة بنجاح" : "Voice Bio Loaded Successfully",
-    publishOnlineTitle: dashboardLang === "ar" ? "نشر السيرة واستضافتها أونلاين" : "Publish Online",
-    generatePortfolioLinkLabel: dashboardLang === "ar" ? "إنشاء رابط محفظتك الإلكترونية" : "Generate Portfolio Link",
-    publishDesc: dashboardLang === "ar" ? "انشر سيرتك الذاتية بمظهر ديناميكي سينمائي على خادم الاستضافة المباشر. حدد اسم المستخدم الذي تفضله لرابط السيرة الذاتية!" : "Publish your resume with dynamic style to our express server instance. Type in your preferred username handles!",
-    portfolioUsernameLabel: dashboardLang === "ar" ? "اسم مستخدم السيرة الذاتية" : "Portfolio Username",
-    publishAndDeployBtn: dashboardLang === "ar" ? "حفظ ونشر السيرة الذاتية مباشرة" : "Publish & Deploy CV Live",
-    publishingToInstanceBtn: dashboardLang === "ar" ? "جاري الحفظ والنشر الآن..." : "Publishing to Instance...",
+    publishOnlineTitle: dashboardLang === "ar" ? "نشر سيرتك الذاتية" : "Publish Your CV",
+    generatePortfolioLinkLabel: dashboardLang === "ar" ? "إنشاء رابط سيرتك الذاتية" : "Create Your CV Link",
+    publishDesc: dashboardLang === "ar" ? "اختر اسم مستخدم لرابط سيرتك الذاتية. بعد النشر سيتم فتح صفحتك مباشرة." : "Choose a username for your CV link. After publishing, your live page will open automatically.",
+    portfolioUsernameLabel: dashboardLang === "ar" ? "اسم مستخدم السيرة الذاتية" : "CV Username",
+    publishAndDeployBtn: dashboardLang === "ar" ? "إنشاء ونشر السيرة الذاتية" : "Create CV",
+    publishingToInstanceBtn: dashboardLang === "ar" ? "جاري الإنشاء والنشر..." : "Creating your CV...",
     publishedSuccessfullyMsg: dashboardLang === "ar" ? "تم نشر وحفظ سيرتك الذاتية بنجاح!" : "Published Successfully!",
     liveAtMsg: dashboardLang === "ar" ? "أصبحت سيرتك الذاتية المهنية متاحة مباشرة على الرابط التالي:" : "Your professional portfolio CV is now live at:",
     openLiveCvBtn: dashboardLang === "ar" ? "فتح رابط السيرة الذاتية المباشر" : "Open Live CV Page",
@@ -796,8 +758,18 @@ export default function App() {
     recruiterLabel: dashboardLang === "ar" ? "مسؤول توظيف / HR" : "Recruiter / HR"
   };
 
+  const wizardSteps = [
+    { id: "identity" as const, label: dt.tabIdentity, icon: User, step: 1 },
+    { id: "specialization" as const, label: dt.tabSpecialization, icon: Sliders, step: 2 },
+    { id: "about" as const, label: dt.tabAbout, icon: FileText, step: 3 },
+    { id: "projects" as const, label: dt.tabProjects, icon: Folder, step: 4 },
+    { id: "seo" as const, label: dt.tabSeo, icon: Search, step: 5 },
+    { id: "theme" as const, label: dt.tabTheme, icon: Palette, step: 6 },
+    { id: "deploy" as const, label: dt.tabDeploy, icon: Globe, step: 7 }
+  ];
+
   return (
-    <div className={`min-height-screen flex flex-col md:flex-row text-gray-100 selection:bg-[#a4b465]/30 selection:text-white ${dashboardLang === "ar" ? "font-sans text-right [direction:rtl]" : "font-sans text-left"}`} style={dashboardLang === "ar" ? { fontFamily: "'Cairo', sans-serif" } : {}}>
+    <div className={`min-h-screen flex flex-col text-gray-100 selection:bg-[#a4b465]/30 selection:text-white ${dashboardLang === "ar" ? "font-sans text-right [direction:rtl]" : "font-sans text-left"}`} style={dashboardLang === "ar" ? { fontFamily: "'Cairo', sans-serif" } : {}}>
       
       {/* Real-time Recruiter Live Alert Notification Toast */}
       <AnimatePresence>
@@ -892,13 +864,9 @@ export default function App() {
         )}
       </div>
 
-      {/* ======================================================== */}
-      {/* EDITOR CONTROL PANEL (Left Side)                         */}
-      {/* ======================================================== */}
-      <aside className="relative w-full md:w-[350px] lg:w-[380px] md:h-screen md:overflow-y-auto z-30 bg-[#0a0c08]/85 backdrop-blur-xl border-b md:border-b-0 md:border-r border-[#a4b465]/20 flex flex-col shrink-0">
-        
-        {/* Header Title */}
-        <div className="p-5 border-b border-[#a4b465]/10 flex items-center justify-between gap-2">
+      {/* Sticky header + horizontal step wizard */}
+      <div className="relative z-40 sticky top-0 shrink-0 bg-[#0a0c08]/90 backdrop-blur-xl border-b border-[#a4b465]/20">
+        <div className="p-4 md:px-6 flex items-center justify-between gap-2 border-b border-[#a4b465]/10">
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-[#a4b465]/10 border border-[#a4b465]/30 shrink-0">
               <Sparkles className="w-5 h-5 text-[#a4b465]" />
@@ -908,7 +876,6 @@ export default function App() {
               <p className="text-[9px] text-[#c8d5a0] leading-tight font-medium opacity-80">{dt.subtitle}</p>
             </div>
           </div>
-          
           <button 
             onClick={() => setDashboardLang(prev => prev === "en" ? "ar" : "en")}
             className="px-2 py-1 rounded-lg bg-[#a4b465]/15 border border-[#a4b465]/30 hover:bg-[#a4b465]/30 transition-all text-[9px] font-bold text-[#c8d5a0] shrink-0 cursor-pointer"
@@ -917,76 +884,41 @@ export default function App() {
           </button>
         </div>
 
-        {/* Tab Navigation Controls */}
-        <nav className="flex overflow-x-auto p-2.5 bg-black/20 border-b border-[#a4b465]/10 gap-1 scrollbar-none shrink-0">
-          {[
-            { id: "identity", label: dt.tabIdentity, icon: User },
-            { id: "specialization", label: dt.tabSpecialization, icon: Sliders },
-            { id: "about", label: dt.tabAbout, icon: FileText },
-            { id: "projects", label: dt.tabProjects, icon: Folder },
-            { id: "seo", label: dt.tabSeo, icon: Search },
-            { id: "theme", label: dt.tabTheme, icon: Palette },
-            { id: "deploy", label: dt.tabDeploy, icon: Globe }
-          ].map(tab => {
+        <nav className="flex overflow-x-auto px-3 md:px-6 py-2.5 gap-1.5 scrollbar-none" aria-label="CV builder steps">
+          {wizardSteps.map(tab => {
             const Icon = tab.icon;
             const isSel = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id)}
+                aria-current={isSel ? "step" : undefined}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer ${
                   isSel 
                     ? "bg-[#a4b465]/15 text-[#a4b465] border border-[#a4b465]/30 shadow-md shadow-[#a4b465]/5" 
-                    : "text-gray-400 hover:text-gray-200 hover:bg-white/5"
+                    : "text-gray-400 hover:text-gray-200 hover:bg-white/5 border border-transparent"
                 }`}
               >
+                <span className={`text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${isSel ? "bg-[#a4b465]/25 text-[#a4b465]" : "bg-white/5 text-gray-500"}`}>
+                  {tab.step}
+                </span>
                 <Icon className="w-3.5 h-3.5" />
                 {tab.label}
               </button>
             );
           })}
         </nav>
+      </div>
+
+      <div className="relative z-10 flex flex-col md:flex-row flex-1 min-h-0">
+      {/* ======================================================== */}
+      {/* EDITOR CONTROL PANEL (Left Side)                         */}
+      {/* ======================================================== */}
+      <aside className="relative w-full md:w-[350px] lg:w-[380px] md:overflow-y-auto bg-[#0a0c08]/85 backdrop-blur-xl border-b md:border-b-0 md:border-r border-[#a4b465]/20 flex flex-col shrink-0 md:max-h-[calc(100vh-7.5rem)]">
 
         {/* Dynamic Editor View Container */}
         <div className="flex-1 p-5 space-y-5 overflow-y-auto">
-          
-          {/* AI One-Click CV Translation Action */}
-          <div className="p-3.5 bg-[#a4b465]/5 border border-[#a4b465]/20 rounded-xl space-y-2">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-bold text-gray-200 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-[#a4b465]" />
-                {dashboardLang === "ar" ? "ترجمة السيرة الذاتية كاملة بالذكاء الاصطناعي" : "One-Click AI Resume Translation"}
-              </span>
-              <span className="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded bg-[#a4b465]/10 text-[#a4b465] border border-[#a4b465]/20">
-                {dashboardLang === "ar" ? "نظام ذكي" : "Smart AI"}
-              </span>
-            </div>
-            <p className="text-[10px] text-gray-400 leading-normal">
-              {dashboardLang === "ar" 
-                ? "ترجم جميع حقول سيرتك الذاتية (الاسم، النبذة، المهارات والمشاريع) تلقائياً باستخدام الذكاء الاصطناعي!" 
-                : "Translate all fields of your CV (Name, Title, Bio, Skills & Projects) automatically with our Smart AI engine!"}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <button
-                onClick={() => translateEntireCV("ar")}
-                disabled={isTranslatingCV}
-                className="flex-1 py-1.5 rounded-lg bg-emerald-900/40 border border-emerald-500/30 hover:bg-emerald-800/50 transition-all text-[10px] text-emerald-200 font-bold flex items-center justify-center gap-1 cursor-pointer disabled:opacity-50"
-              >
-                {isTranslatingCV ? (
-                  <RefreshCw className="w-3 h-3 animate-spin" />
-                ) : "🌐"} {dt.translateBtn}
-              </button>
-              
-              <button
-                onClick={() => translateEntireCV("en")}
-                disabled={isTranslatingCV}
-                className="py-1.5 px-3 rounded-lg bg-blue-900/40 border border-blue-500/30 hover:bg-blue-800/50 transition-all text-[10px] text-blue-200 font-bold flex items-center justify-center gap-1 cursor-pointer disabled:opacity-50"
-              >
-                {dt.translateToEnBtn}
-              </button>
-            </div>
-          </div>
-          
+
           {/* TAB 1: IDENTITY */}
           {activeTab === "identity" && (
             <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
@@ -1161,7 +1093,7 @@ export default function App() {
                 <label className="text-[10px] uppercase font-bold text-[#a4b465]/80 tracking-widest">{dt.fullName}</label>
                 <input 
                   type="text"
-                  placeholder="e.g. Moayad Al-Badarneh"
+                  placeholder="e.g. Sarah Johnson"
                   value={cvData.fullName}
                   onChange={e => setCvData(prev => ({ ...prev, fullName: e.target.value }))}
                   className="w-full bg-white/5 border border-white/10 focus:border-[#a4b465] outline-none rounded-lg px-3.5 py-2.5 text-sm text-white transition-all focus:ring-1 focus:ring-[#a4b465]/30"
@@ -1173,7 +1105,7 @@ export default function App() {
                 <label className="text-[10px] uppercase font-bold text-[#a4b465]/80 tracking-widest">{dt.jobTitle}</label>
                 <input 
                   type="text"
-                  placeholder="e.g. Senior Full-Stack Developer"
+                  placeholder="Enter your job title (e.g. Marketing, Student, Designer, Engineer)"
                   value={cvData.title}
                   onChange={e => setCvData(prev => ({ ...prev, title: e.target.value }))}
                   className="w-full bg-white/5 border border-white/10 focus:border-[#a4b465] outline-none rounded-lg px-3.5 py-2.5 text-sm text-white transition-all focus:ring-1 focus:ring-[#a4b465]/30"
@@ -1281,7 +1213,7 @@ export default function App() {
                   </p>
                   <input 
                     type="text"
-                    placeholder="e.g. moayad-dev"
+                    placeholder="e.g. sarah-johnson"
                     value={cvData.githubUsername || ""}
                     onChange={e => setCvData(prev => ({ ...prev, githubUsername: e.target.value }))}
                     className="w-full bg-black/40 border border-white/10 focus:border-[#a4b465] outline-none rounded-lg px-3.5 py-2.5 text-xs text-white transition-all font-mono"
@@ -1312,7 +1244,7 @@ export default function App() {
                 <label className="text-[10px] uppercase font-bold text-[#a4b465]/80 tracking-widest">{dt.coreSkills}</label>
                 <input 
                   type="text"
-                  placeholder="e.g. React, Node.js, TypeScript, Cloud Architecture"
+                  placeholder="e.g. Communication, Excel, Teamwork, Customer service"
                   value={cvData.skills}
                   onChange={e => setCvData(prev => ({ ...prev, skills: e.target.value }))}
                   className="w-full bg-black/40 border border-white/10 focus:border-[#a4b465] outline-none rounded-lg px-3.5 py-2.5 text-xs text-white transition-all focus:ring-1 focus:ring-[#a4b465]/30"
@@ -1341,7 +1273,7 @@ export default function App() {
                   </label>
                   <input 
                     type="text"
-                    placeholder="e.g. John Doe — Principal UX Engineer"
+                    placeholder="e.g. Sarah Johnson — Graphic Designer"
                     value={cvData.seoTitle || ""}
                     onChange={e => setCvData(prev => ({ ...prev, seoTitle: e.target.value }))}
                     className="w-full bg-black/40 border border-white/10 focus:border-[#a4b465] outline-none rounded-lg px-3.5 py-2 text-xs text-white transition-all font-bold"
@@ -1365,7 +1297,7 @@ export default function App() {
                   <label className="text-[10px] uppercase font-bold text-[#a4b465]/80 tracking-widest">{dt.keywordsLabel}</label>
                   <input 
                     type="text"
-                    placeholder="e.g. software engineer, web developer, designer"
+                    placeholder="e.g. designer, marketing, student, teacher"
                     value={cvData.seoKeywords || ""}
                     onChange={e => setCvData(prev => ({ ...prev, seoKeywords: e.target.value }))}
                     className="w-full bg-black/40 border border-white/10 focus:border-[#a4b465] outline-none rounded-lg px-3.5 py-2 text-xs text-white transition-all"
@@ -1411,7 +1343,7 @@ export default function App() {
                 
                 <input 
                   type="text"
-                  placeholder="e.g. 5+ years experience, Kubernetes expert, AWS, remote leadership"
+                  placeholder="e.g. 5 years in sales, team leadership, bilingual English and Arabic"
                   value={aiBulletsAbout}
                   onChange={e => setAiBulletsAbout(e.target.value)}
                   className="w-full bg-white/5 border border-white/10 focus:border-[#a4b465] outline-none rounded-lg px-3 py-2 text-xs text-white transition-all"
@@ -1442,7 +1374,7 @@ export default function App() {
                 <label className="text-[10px] uppercase font-bold text-[#a4b465]/80 tracking-widest">{dt.coreSkills}</label>
                 <input 
                   type="text"
-                  placeholder="e.g. React, Node.js, TypeScript, Cloud Architecture"
+                  placeholder="e.g. Communication, Excel, Teamwork, Customer service"
                   value={cvData.skills}
                   onChange={e => setCvData(prev => ({ ...prev, skills: e.target.value }))}
                   className="w-full bg-white/5 border border-white/10 focus:border-[#a4b465] outline-none rounded-lg px-3.5 py-2.5 text-sm text-white transition-all focus:ring-1 focus:ring-[#a4b465]/30"
@@ -1848,7 +1780,7 @@ export default function App() {
                       type="text"
                       value={username}
                       onChange={e => setUsername(e.target.value)}
-                      placeholder="e.g. moayad-dev"
+                      placeholder="e.g. sarah-johnson"
                       className="flex-1 bg-white/5 border border-white/10 focus:border-[#a4b465] outline-none rounded-r-lg px-3.5 py-2.5 text-xs text-white transition-all font-bold"
                     />
                   </div>
@@ -2021,7 +1953,7 @@ export default function App() {
                     />
                   ) : (
                     <div className="w-full h-full bg-gray-800 rounded-full flex items-center justify-center text-5xl font-black text-[#a4b465]/50">
-                      {cvData.fullName ? cvData.fullName.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase() : "JS"}
+                      {cvData.fullName ? cvData.fullName.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase() : "?"}
                     </div>
                   )}
                 </div>
@@ -2064,7 +1996,7 @@ export default function App() {
                 {cvData.fullName || "Your Name"}
               </h2>
               <p className={`text-base font-bold uppercase tracking-[0.2em] ${themeColors.text}`}>
-                {cvData.title || "Your Title"}
+                {cvData.title || "Your Job Title"}
               </p>
             </div>
 
@@ -2143,9 +2075,9 @@ export default function App() {
 
           {/* ABOUT ME GLASS BOX */}
           <section id={cvData.aboutSectionId} className="w-full bg-white/5 backdrop-blur-xl border border-white/10 p-6 md:p-8 rounded-2xl flex flex-col gap-3 shadow-2xl text-left mb-6">
-            <h3 className="text-[#a4b465] text-xs font-black uppercase tracking-widest border-b border-[#a4b465]/20 pb-2 mb-2">Personal Profile</h3>
+            <h3 className="text-[#a4b465] text-xs font-black uppercase tracking-widest border-b border-[#a4b465]/20 pb-2 mb-2">About Me</h3>
             <p className="text-sm md:text-base leading-relaxed text-[#d8e2dc] whitespace-pre-wrap font-sans">
-              {cvData.aboutMe || "Describe yourself in the control panel to populate this introduction section."}
+              {cvData.aboutMe || "Write about yourself in the editor to see your introduction here."}
             </p>
           </section>
 
@@ -2153,7 +2085,7 @@ export default function App() {
 
           {/* SKILLS GLASS BOX */}
           <section id="skills" className="w-full bg-white/5 backdrop-blur-xl border border-white/10 p-6 md:p-8 rounded-2xl flex flex-col gap-3 shadow-2xl text-left mb-6">
-            <h3 className="text-[#a4b465] text-xs font-black uppercase tracking-widest border-b border-[#a4b465]/20 pb-2 mb-2">Technical Skills</h3>
+            <h3 className="text-[#a4b465] text-xs font-black uppercase tracking-widest border-b border-[#a4b465]/20 pb-2 mb-2">Skills</h3>
             <ul className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
               {cvData.skills ? (
                 cvData.skills.split(",")
@@ -2175,7 +2107,7 @@ export default function App() {
 
           {/* PROJECTS PORTFOLIO GLASS BOX */}
           <section id={cvData.workSectionId} className="w-full bg-white/5 backdrop-blur-xl border border-white/10 p-6 md:p-8 rounded-2xl flex flex-col gap-3 shadow-2xl text-left">
-            <h3 className="text-[#a4b465] text-xs font-black uppercase tracking-widest border-b border-[#a4b465]/20 pb-2 mb-2">Featured Works</h3>
+            <h3 className="text-[#a4b465] text-xs font-black uppercase tracking-widest border-b border-[#a4b465]/20 pb-2 mb-2">Experience & Projects</h3>
             
             <div className="flex flex-col gap-4 text-left">
               {cvData.projects.map((proj) => (
@@ -2196,7 +2128,7 @@ export default function App() {
 
               {cvData.projects.length === 0 && (
                 <p className="text-center text-xs text-gray-500 italic py-6">
-                  No showcase projects added to the resume.
+                  No experience or projects added yet.
                 </p>
               )}
             </div>
@@ -2211,6 +2143,7 @@ export default function App() {
 
       </main>
 
+      </div>
     </div>
   );
 }
